@@ -1,0 +1,102 @@
+#import os
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List, Optional
+
+app = FastAPI(title="IC Markets FIX Bridge")
+
+# ---------- ENV CONFIG (Railway variables) ----------
+FIX_QUOTE_HOST = os.getenv("FIX_QUOTE_HOST", "demo-uk-eqx-01.p.c-trader.com:5211")
+FIX_TRADE_HOST = os.getenv("FIX_TRADE_HOST", "demo-uk-eqx-01.p.c-trader.com:5212")
+FIX_SENDER_COMP_ID = os.getenv("FIX_SENDER_COMP_ID", "demo.icmarkets.9711276")
+FIX_ACCOUNT = os.getenv("FIX_ACCOUNT", "9711276")
+FIX_PASSWORD = os.getenv("FIX_PASSWORD", "CHANGE_ME")
+
+# ---------- REQUEST MODELS ----------
+class ConnectRequest(BaseModel):
+    quote_host: Optional[str] = None
+    trade_host: Optional[str] = None
+    sender_comp_id: Optional[str] = None
+    account: Optional[str] = None
+
+class MarketDataRequest(BaseModel):
+    symbols: List[str]
+    features: Optional[List[str]] = None
+
+class TechnicalAnalysisRequest(BaseModel):
+    strategies: List[str]
+    features: Optional[List[str]] = None
+
+# ---------- ROOT ----------
+@app.get("/")
+def root():
+    return {
+        "status": "OK",
+        "message": "IC Markets FIX Bridge running",
+        "quote_host": FIX_QUOTE_HOST,
+        "trade_host": FIX_TRADE_HOST
+    }
+
+# ---------- FIX CONNECT ----------
+@app.post("/api/fix/connect")
+def connect_fix(req: ConnectRequest):
+    # Use provided values if present, otherwise env defaults
+    quote_host = req.quote_host or FIX_QUOTE_HOST
+    trade_host = req.trade_host or FIX_TRADE_HOST
+    sender_comp_id = req.sender_comp_id or FIX_SENDER_COMP_ID
+    account = req.account or FIX_ACCOUNT
+
+    # TODO: replace with real FIX session init (QuickFIX / python-fix, etc.)
+    # For now we just log and pretend it worked
+    print("=== FIX CONNECT REQUEST ===")
+    print("Quote host:", quote_host)
+    print("Trade host:", trade_host)
+    print("SenderCompID:", sender_comp_id)
+    print("Account:", account)
+    print("Password:", "***" if FIX_PASSWORD else None)
+
+    return {
+        "status": "CONNECTED",
+        "quote_host": quote_host,
+        "trade_host": trade_host,
+        "sender_comp_id": sender_comp_id,
+        "account": account
+    }
+
+# ---------- MARKET DATA ----------
+@app.post("/api/fix/market_data")
+def market_data(req: MarketDataRequest):
+    print("=== MARKET DATA REQUEST ===")
+    print("Symbols:", req.symbols)
+    print("Features:", req.features)
+
+    # TODO: subscribe/send FIX MarketDataRequest messages
+    # For now just echo back dummy response
+    return {
+        "status": "OK",
+        "symbols": req.symbols,
+        "features": req.features,
+        "note": "FIX market data subscription placeholder"
+    }
+
+# ---------- TECHNICAL ANALYSIS ----------
+@app.post("/api/fix/technical_analysis")
+def technical_analysis(req: TechnicalAnalysisRequest):
+    print("=== TECHNICAL ANALYSIS REQUEST ===")
+    print("Strategies:", req.strategies)
+    print("Features:", req.features)
+
+    # TODO: apply your strategies on incoming data streams
+    # Placeholder signals:
+    signals = [
+        {"strategy": s, "signal": "NEUTRAL"}
+        for s in req.strategies
+    ]
+
+    return {
+        "status": "OK",
+        "strategies": req.strategies,
+        "signals": signals,
+        "note": "Technical analysis placeholder"
+    }
+

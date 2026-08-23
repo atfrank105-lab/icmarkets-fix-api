@@ -1,5 +1,4 @@
-fastapi
-uvicorn[standard]
-python-fix
-protobuf
-pydantic
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
+protobuf==7.35.1
+pydantic==2.13.4
